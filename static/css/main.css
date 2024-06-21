@@ -1,0 +1,22 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+.main-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.search-form-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.search-form {
+    width: 80%;
+}
+.footer {
+    text-align: center;
+    padding: 10px;
+}
