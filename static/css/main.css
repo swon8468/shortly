@@ -7,14 +7,22 @@ html, body {
     flex-direction: column;
     height: 100%;
 }
-.search-form-container {
+.content {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-.search-form {
+.content_div {
     width: 80%;
+}
+.submit-btn {
+    width: 80%;
+    margin: 0 auto;
+    display: block;
+}
+.url_forms {
+    display: flex;
 }
 .footer {
     text-align: center;
