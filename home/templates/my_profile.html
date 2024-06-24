@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}EDIT MY PROFILE{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="content_div">
+        <div class="h4 pb-2 mb-4 text-primary border-bottom border-primary">
+            EDIT MY PROFILE
+        </div>
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th scope="row">이름</th>
+                    <td>{{ user.name }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">이메일</th>
+                    <td>{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">비밀번호 변경</th>
+                    <td>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#passwordModal">
+                            변경하기
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="modal fade" id="passwordModal" tabindex="-1" role="dialog" aria-labelledby="passwordModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="passwordModalLabel">비밀번호 변경</h5>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" action="{% url 'form_process' %}">
+                            {% csrf_token %} 
+                            <input type="hidden" name="form_type" value="edit_profile">
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" name="password1" id="password1" required>
+                                <label for="password1">새 비밀번호</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" name="password2" id="password2" required>
+                                <label for="password2">새 비밀번호 확인</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">변경하기</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
