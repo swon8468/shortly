@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import CustomUser, Group
+from .models import CustomUser, Group, URL
 from django.contrib.auth import authenticate, logout, login as auth_login
 from .decorators import role_required
-from django.http import HttpResponseRedirect
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from datetime import timedelta
+from django.utils import timezone as django_timezone
 
 # Create your views here.
 def index(request):
@@ -104,13 +105,32 @@ def form_process(request):
             group.super_admin = super_admin
             group.status = status
             group.save()
-
-            # 그룹의 슈퍼관리자 그룹도 업데이트
             super_admin.group = group
             super_admin.save()
 
             messages.success(request, 'Group updated successfully.')
             return redirect('group_list')
+        
+        if form_type == 'shorten_url':
+            original_link = request.POST.get('original_link')
+            shortened_link = request.POST.get('shortened_link')
+
+            owner = request.user
+            owner_group = owner.group  # 예시: 사용자의 그룹 정보 가져오기, 필드명은 적절히 변경
+
+            expires_at = django_timezone.now() + timedelta(days=30)
+
+            url_object = URL.objects.create(
+                owner=owner,
+                owner_group=owner_group,
+                original_link=original_link,
+                shortened_link=shortened_link,
+                expires_at=expires_at
+            )
+            url_object.save()
+
+            messages.success(request, 'URL shortened successfully!')
+            return redirect('url_list')  # URL 리스트 페이지로 리다이렉트
 
     return render(request, 'index.html')
 
@@ -141,3 +161,14 @@ def group_list(request):
         'groups' : groups
     }
     return render(request, 'group_list.html', context)
+
+@login_required
+def create_url(request):
+    return render(request, 'create_url.html')
+
+def redirect_original_url(request, shortened_link):
+    original_link = URL.get_original_url(shortened_link)
+    if original_link:
+        return redirect(original_link)
+    else:
+        return redirect('index')

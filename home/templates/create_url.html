@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Shorten URL{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="content_div">
+        <div class="h4 pb-2 mb-4 text-primary border-bottom border-primary">
+            Shorten URL
+        </div>
+        <form method="POST" action="{% url 'form_process' %}">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="shorten_url">
+            <div class="form-floating mb-3">
+                <input type="text" name="original_link" class="form-control" id="floatingInput" required>
+                <label for="floatingInput">원본 링크</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="text" name="shortened_link" class="form-control" id="floatingInput" required>
+                <label for="floatingInput">단축 링크</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Shorten URL</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

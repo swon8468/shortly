@@ -1,5 +1,5 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
 from datetime import timedelta
 
@@ -41,7 +41,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
-    group = models.ForeignKey('Group', on_delete=models.SET_NULL, null=True, blank=True, related_name='members')  # 그룹 필드 추가
+    group = models.ForeignKey('Group', on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
 
     objects = CustomUserManager()
 
@@ -58,22 +58,23 @@ class Group(models.Model):
         ('inactive', '비활성화'),
     ]
 
-    name = models.CharField(max_length=100, unique=True)  # 그룹명 필드 추가
-    creator = models.ForeignKey(CustomUser, related_name='created_groups', on_delete=models.CASCADE)  # ForeignKey로 변경
-    super_admin = models.OneToOneField(CustomUser, related_name='super_admin_groups', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, unique=True)
+    creator = models.ForeignKey(CustomUser, related_name='created_groups', on_delete=models.CASCADE)
+    super_admin = models.OneToOneField(CustomUser, related_name='super_admin_group', on_delete=models.CASCADE)
     admins = models.ManyToManyField(CustomUser, related_name='admin_groups', blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # 그룹이 생성될 때, 그룹의 생성자와 슈퍼 관리자의 그룹을 이 그룹으로 설정
-        self.creator.group = self
-        self.creator.save()
-        self.super_admin.group = self
-        self.super_admin.save()
+        if not self.creator.group:
+            self.creator.group = self
+            self.creator.save()
+        if not self.super_admin.group:
+            self.super_admin.group = self
+            self.super_admin.save()
 
     def __str__(self):
-        return self.name  # 그룹명을 반환
+        return self.name
 
 # URL 모델 정의
 class URL(models.Model):
@@ -85,7 +86,7 @@ class URL(models.Model):
     ]
 
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    owner_group = models.CharField(max_length=255)
+    owner_group = models.CharField(max_length=255)  # 필요에 따라 변경 가능
     original_link = models.URLField(max_length=1024)
     shortened_link = models.CharField(max_length=20, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -94,3 +95,11 @@ class URL(models.Model):
 
     def __str__(self):
         return self.shortened_link
+
+    @staticmethod
+    def get_original_url(shortened_link):
+        try:
+            url_object = URL.objects.get(shortened_link=shortened_link)
+            return url_object.original_link
+        except URL.DoesNotExist:
+            return None
