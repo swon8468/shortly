@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Group List{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="content_div">
+        <div class="container mt-5">
+            <div class="h4 pb-2 mb-4 text-primary border-bottom border-primary">
+                Group List
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>그룹 이름</th>
+                        <th>슈퍼 관리자</th>
+                        <th>상태</th>
+                        <th>생성자</th>
+                        <th>편집</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in groups %}
+                    <tr>
+                        <td>{{ group.name }}</td>
+                        <td>{{ group.super_admin.name }}({{ group.super_admin.email }})</td>
+                        <td>{{ group.status }}</td>
+                        <td>{{ group.creator.name }}</td>
+                        <td>
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editModal{{ group.id }}">
+                                편집
+                            </button>
+
+                            <!-- Modal -->
+                            <div class="modal fade" id="editModal{{ group.id }}" tabindex="-1" role="dialog" aria-labelledby="editModalLabel{{ group.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editModalLabel{{ group.id }}">그룹 편집</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="POST" action="{% url 'form_process' %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="form_type" value="edit_group">
+                                                <input type="hidden" name="group_id" value="{{ group.id }}">
+                                                <div class="form-group">
+                                                    <label for="groupName{{ group.id }}">그룹 이름</label>
+                                                    <input type="text" class="form-control" id="groupName{{ group.id }}" name="group_name" value="{{ group.name }}" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="superAdminEmail{{ group.id }}">슈퍼 관리자 이메일</label>
+                                                    <input type="email" class="form-control" id="superAdminEmail{{ group.id }}" name="super_admin_email" value="{{ group.super_admin.email }}" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="status{{ group.id }}">상태</label>
+                                                    <select class="form-control" id="status{{ group.id }}" name="status">
+                                                        <option value="active" {% if group.status == 'active' %}selected{% endif %}>활성화</option>
+                                                        <option value="inactive" {% if group.status == 'inactive' %}selected{% endif %}>비활성화</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="creator{{ group.id }}">생성자</label>
+                                                    <input type="text" class="form-control" id="creator{{ group.id }}" value="{{ group.creator.name }}" disabled>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">저장</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
