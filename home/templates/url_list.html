@@ -15,16 +15,64 @@
                     <th scope="col">Master</th>
                     <th scope="col">Short URL</th>
                     <th scope="col">Source URL</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
             <tbody>
-            
-            <tr>
-                <th scope="row">1</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-            </tr>
+                {% for url in url_list %}
+                <tr>
+                    <th scope="row">{{ url.id }}</th>
+                    <td>{{ url.owner.name }}</td>
+                    <td>{{ url.shortened_link }}</td>
+                    <td>{{ url.original_link }}</td>
+                    <td>
+                        {% if url.status == 'accessible' %}
+                        <span class="badge badge-success">접속 가능</span>
+                        {% elif url.status == 'inaccessible' %}
+                        <span class="badge badge-danger">접속 불가능</span>
+                        {% elif url.status == 'group_modified' %}
+                        <span class="badge badge-info">그룹 관리자 수정</span>
+                        {% elif url.status == 'owner_modified' %}
+                        <span class="badge badge-info">소유자 수정</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editModal{{ url.id }}">
+                            수정
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Modal -->
+                <div class="modal fade" id="editModal{{ url.id }}" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editModalLabel">URL 수정 - {{ url.shortened_link }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="{% url 'form_process' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="form_type" value="edit_url">
+                                    <input type="hidden" name="url_id" value="{{ url.id }}">
+                                    <div class="form-group">
+                                        <label for="original_link">원본 URL</label>
+                                        <input type="url" class="form-control" id="original_link" name="original_link" value="{{ url.original_link }}">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">저장</button>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </tbody>
         </table>
     </div>

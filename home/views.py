@@ -111,26 +111,45 @@ def form_process(request):
             messages.success(request, 'Group updated successfully.')
             return redirect('group_list')
         
+        if form_type == 'edit_url':
+            url_id = request.POST.get('url_id')
+            original_link = request.POST.get('original_link')
+
+            try:
+                url_object = URL.objects.get(pk=url_id)
+                url_object.original_link = original_link
+                url_object.save()
+
+                messages.success(request, 'URL updated successfully!')
+                return redirect('url_list')
+            except URL.DoesNotExist:
+                return redirect('url_list')
+        
         if form_type == 'shorten_url':
             original_link = request.POST.get('original_link')
             shortened_link = request.POST.get('shortened_link')
 
             owner = request.user
-            owner_group = owner.group  # 예시: 사용자의 그룹 정보 가져오기, 필드명은 적절히 변경
+            owner_group = owner.group
 
             expires_at = django_timezone.now() + timedelta(days=30)
 
-            url_object = URL.objects.create(
-                owner=owner,
-                owner_group=owner_group,
-                original_link=original_link,
+            url_object, created = URL.objects.get_or_create(
                 shortened_link=shortened_link,
-                expires_at=expires_at
+                defaults={
+                    'owner': owner,
+                    'owner_group': owner_group,
+                    'original_link': original_link,
+                    'expires_at': expires_at,
+                }
             )
-            url_object.save()
+
+            if not created:
+                messages.error(request, 'Shortened link already exists. Please choose a different one.')
+                return render(request, 'create_url.html', {'form_type': form_type})
 
             messages.success(request, 'URL shortened successfully!')
-            return redirect('url_list')  # URL 리스트 페이지로 리다이렉트
+            return redirect('url_list')
 
     return render(request, 'index.html')
 
@@ -146,7 +165,11 @@ def my_profile(request):
 @login_required
 @role_required(['ADMIN', 'OWNER'])
 def url_list(request):
-    return render(request, 'url_list.html')
+    url_list = URL.objects.all()
+    context = {
+        'url_list' : url_list
+    }
+    return render(request, 'url_list.html', context)
 
 @login_required
 @role_required(['ADMIN', 'OWNER'])

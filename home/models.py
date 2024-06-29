@@ -86,12 +86,17 @@ class URL(models.Model):
     ]
 
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    owner_group = models.CharField(max_length=255)  # 필요에 따라 변경 가능
+    owner_group = models.CharField(max_length=255)  # CharField로 정의
     original_link = models.URLField(max_length=1024)
     shortened_link = models.CharField(max_length=20, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(default=timezone.now() + timedelta(days=30))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='accessible')
+
+    def save(self, *args, **kwargs):
+        if self.owner.group:
+            self.owner_group = self.owner.group.name  # 그룹의 이름을 owner_group에 할당
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.shortened_link
